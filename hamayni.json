@@ -1,64 +1,68 @@
 {
   "name": "Supabase Self-Hosted",
-  "description": "Full Supabase stack: PostgreSQL, Auth, Storage, Kong, Studio, Realtime",
-  "contract_version": "1.1.0",
-  "template_version": "1.0.0",
-  "artifact_type": "docker-compose",
-  "runtime": {
-    "type": "docker",
-    "ports": {
-      "kong": 8000,
-      "studio": 3100,
-      "postgres": 5432,
-      "meta": 8080
-    }
-  },
-  "prerequisites": ["docker", "docker-compose"],
-  "env": [
-    {"name": "POSTGRES_PASSWORD", "required": true, "description": "PostgreSQL superuser password"},
-    {"name": "JWT_SECRET", "required": true, "description": "JWT secret for GoTrue and Kong (min 32 chars)"},
-    {"name": "ANON_KEY", "required": true, "description": "Supabase anon JWT key"},
-    {"name": "SERVICE_ROLE_KEY", "required": true, "description": "Supabase service_role JWT key"},
-    {"name": "DASHBOARD_USERNAME", "required": false, "default": "supabase", "description": "Studio dashboard username"},
-    {"name": "DASHBOARD_PASSWORD", "required": false, "default": "supabase", "description": "Studio dashboard password"},
-    {"name": "SITE_URL", "required": false, "default": "http://localhost:8000", "description": "Public site URL"},
-    {"name": "SMTP_HOST", "required": false, "description": "SMTP server for email delivery"},
-    {"name": "SMTP_PORT", "required": false, "default": "587", "description": "SMTP port"},
-    {"name": "SMTP_USER", "required": false, "description": "SMTP username"},
-    {"name": "SMTP_PASS", "required": false, "description": "SMTP password"},
-    {"name": "SMTP_SENDER_NAME", "required": false, "default": "Supabase", "description": "Email sender name"}
+  "version": "1.1.1",
+  "description": "Instance Supabase auto-hébergée complète avec Studio, Auth, REST, Realtime, Storage et PostgreSQL.",
+  "category": "backend",
+  "framework": "docker-compose",
+  "type": "docker-compose",
+  "tags": ["supabase", "postgres", "baas", "self-hosted", "auth", "storage", "realtime"],
+  "features": [
+    "Studio UI",
+    "GoTrue Auth",
+    "PostgREST API",
+    "Realtime subscriptions",
+    "Storage API",
+    "PostgreSQL 15",
+    "Kong API Gateway"
   ],
-  "health": {
-    "checks": [
-      {"name": "auth", "url": "http://127.0.0.1:8000/auth/v1/health", "timeout": 120, "type": "internal"},
-      {"name": "rest", "url": "http://127.0.0.1:8000/rest/v1/", "timeout": 120, "type": "internal"},
-      {"name": "storage", "url": "http://127.0.0.1:8000/storage/v1/", "timeout": 120, "type": "internal"},
-      {"name": "studio", "url": "http://127.0.0.1:3100", "timeout": 180, "type": "internal"},
-      {"name": "external_https", "url": "https://{{domain}}", "timeout": 60, "type": "external"}
-    ]
+  "requirements": {
+    "min_ram_mb": 2048,
+    "min_disk_gb": 10,
+    "docker": true,
+    "docker_compose": true
   },
-  "healthCheck": {"url": "http://localhost:8000/auth/v1/health", "timeout": 120},
-  "postInstall": [
-    "echo 'Waiting for services to stabilize...'",
-    "sleep 10",
-    "echo 'Supabase Self-Hosted is ready'"
-  ],
+  "deploy": {
+    "compose_file": "docker-compose.yml",
+    "env_file": ".env"
+  },
+  "healthCheck": {
+    "internal": [
+      { "name": "Auth", "url": "http://127.0.0.1:8000/auth/v1/health", "expectedStatus": 200 },
+      { "name": "REST", "url": "http://127.0.0.1:8000/rest/v1/", "expectedStatus": 200 },
+      { "name": "Storage", "url": "http://127.0.0.1:8000/storage/v1/status", "expectedStatus": 200 },
+      { "name": "Studio", "url": "http://127.0.0.1:3000", "expectedStatus": 200 }
+    ],
+    "external": [
+      { "name": "Auth", "path": "/auth/v1/health", "expectedStatus": 200 },
+      { "name": "REST", "path": "/rest/v1/", "expectedStatus": 200 },
+      { "name": "Storage", "path": "/storage/v1/status", "expectedStatus": 200 }
+    ],
+    "timeout_seconds": 300,
+    "retry_on_fail": true
+  },
   "policies": {
     "ban_latest": true,
     "strict_mode": true,
-    "self_host_strict": true,
-    "on_error_stop": true
+    "tested": true,
+    "idempotency_verified": true
   },
-  "recovery": {
-    "max_rounds": 2,
-    "restart_on_fail": true,
-    "restart_command": "docker compose down && docker compose up -d"
-  },
-  "seed_admin": {
-    "enabled": true,
-    "api_endpoint": "http://127.0.0.1:8000/auth/v1/admin/users",
-    "max_retries": 3
-  },
-  "minAgentVersion": "2.5.0",
-  "tested": true
+  "variables": [
+    { "key": "POSTGRES_PASSWORD", "required": true, "generate": "random_32" },
+    { "key": "JWT_SECRET", "required": true, "generate": "random_64" },
+    { "key": "ANON_KEY", "required": true, "generate": "jwt_anon" },
+    { "key": "SERVICE_ROLE_KEY", "required": true, "generate": "jwt_service" },
+    { "key": "SITE_URL", "required": true, "default": "http://localhost:3000" },
+    { "key": "API_EXTERNAL_URL", "required": true, "default": "http://localhost:8000" },
+    { "key": "SUPABASE_PUBLIC_URL", "required": true, "default": "http://localhost:8000" },
+    { "key": "STUDIO_PORT", "required": false, "default": "3000" },
+    { "key": "KONG_HTTP_PORT", "required": false, "default": "8000" },
+    { "key": "POSTGRES_PORT", "required": false, "default": "5432" },
+    { "key": "DISABLE_SIGNUP", "required": false, "default": "false" },
+    { "key": "ENABLE_EMAIL_AUTOCONFIRM", "required": false, "default": "false" },
+    { "key": "SMTP_HOST", "required": false },
+    { "key": "SMTP_PORT", "required": false, "default": "587" },
+    { "key": "SMTP_USER", "required": false },
+    { "key": "SMTP_PASS", "required": false },
+    { "key": "SMTP_ADMIN_EMAIL", "required": false }
+  ]
 }
