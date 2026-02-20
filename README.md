@@ -1,8 +1,41 @@
 # Supabase Self-Hosted — Hamayni Certified Template
 
-> Full Supabase stack auto-hébergé avec PostgreSQL, GoTrue Auth, Storage, Kong API Gateway, Studio et Realtime.
+[![Hamayni Certified](https://img.shields.io/badge/Hamayni-Certified%20v1.1.1-green)](https://hamayni.com)
+[![Idempotency](https://img.shields.io/badge/Idempotency-Verified-blue)](https://hamayni.com)
 
-## Quick Start
+## 📋 Overview
+
+Deploy a complete Supabase instance on your own server with one click via the Hamayni platform.
+
+### Services Included
+
+| Service | Image | Version |
+|---------|-------|---------|
+| Studio | supabase/studio | 2024.12.18 |
+| Auth (GoTrue) | supabase/gotrue | v2.164.0 |
+| REST (PostgREST) | postgrest/postgrest | v12.2.3 |
+| Realtime | supabase/realtime | v2.33.58 |
+| Storage | supabase/storage-api | v1.11.13 |
+| Meta | supabase/postgres-meta | v0.84.2 |
+| Database | supabase/postgres | 15.8.1.060 |
+| API Gateway | kong | 2.8.1 |
+
+### Requirements
+
+- **RAM**: 2 GB minimum (4 GB recommended)
+- **Disk**: 10 GB minimum
+- **Docker** + **Docker Compose** v2+
+
+## 🚀 Quick Start
+
+### Via Hamayni (Recommended)
+
+1. Go to your Hamayni dashboard
+2. Click **Deploy New** → Select **Supabase Self-Hosted**
+3. Choose your server and configure variables
+4. Deploy!
+
+### Manual
 
 ```bash
 cp .env.example .env
@@ -10,43 +43,22 @@ cp .env.example .env
 docker compose up -d
 ```
 
-## Services
+## 🔒 Security
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Kong API Gateway | 8000 | Main API entry point |
-| Studio | 3100 | Dashboard UI |
-| PostgreSQL | 5432 | Database |
-| GoTrue | 9999 (internal) | Authentication |
-| PostgREST | 3000 (internal) | REST API |
-| Realtime | 4000 (internal) | WebSocket subscriptions |
-| Storage | 5000 (internal) | File storage |
-| Meta | 8080 (internal) | Database metadata |
+- All sensitive values are auto-generated during deployment
+- No `:latest` tags — all images use pinned, stable versions
+- Health checks on all critical services
+- SMTP configuration is optional but recommended for production
 
-## Health Checks
+## 📜 Certification
 
-- Auth: `http://localhost:8000/auth/v1/health`
-- REST: `http://localhost:8000/rest/v1/`
-- Storage: `http://localhost:8000/storage/v1/`
-- Studio: `http://localhost:3100`
+- **Level**: 2 (Certified)
+- **Idempotency**: ✅ Verified
+- **Strict Mode**: ✅ Enabled
+- **Ban Latest**: ✅ Enforced
 
-## Hamayni Contract
+See [CERTIFICATION.md](./CERTIFICATION.md) for full details.
 
-This template follows the **hamayni.json v1.1.0** standard:
-- ✅ Multi-service health checks (internal + external)
-- ✅ Strict mode with version pinning
-- ✅ `ban_latest` policy enforced
-- ✅ Automatic recovery (2 rounds)
-- ✅ Seed admin provisioning via GoTrue
-- ✅ `ON_ERROR_STOP=1` for migrations
-
-## Requirements
-
-- **CPU**: 4 vCPU
-- **RAM**: 8 GB
-- **Disk**: 30 GB
-- **Docker** + **Docker Compose**
-
-## License
+## 📄 License
 
 MIT
