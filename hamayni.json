@@ -1,0 +1,64 @@
+{
+  "name": "Supabase Self-Hosted",
+  "description": "Full Supabase stack: PostgreSQL, Auth, Storage, Kong, Studio, Realtime",
+  "contract_version": "1.1.0",
+  "template_version": "1.0.0",
+  "artifact_type": "docker-compose",
+  "runtime": {
+    "type": "docker",
+    "ports": {
+      "kong": 8000,
+      "studio": 3100,
+      "postgres": 5432,
+      "meta": 8080
+    }
+  },
+  "prerequisites": ["docker", "docker-compose"],
+  "env": [
+    {"name": "POSTGRES_PASSWORD", "required": true, "description": "PostgreSQL superuser password"},
+    {"name": "JWT_SECRET", "required": true, "description": "JWT secret for GoTrue and Kong (min 32 chars)"},
+    {"name": "ANON_KEY", "required": true, "description": "Supabase anon JWT key"},
+    {"name": "SERVICE_ROLE_KEY", "required": true, "description": "Supabase service_role JWT key"},
+    {"name": "DASHBOARD_USERNAME", "required": false, "default": "supabase", "description": "Studio dashboard username"},
+    {"name": "DASHBOARD_PASSWORD", "required": false, "default": "supabase", "description": "Studio dashboard password"},
+    {"name": "SITE_URL", "required": false, "default": "http://localhost:8000", "description": "Public site URL"},
+    {"name": "SMTP_HOST", "required": false, "description": "SMTP server for email delivery"},
+    {"name": "SMTP_PORT", "required": false, "default": "587", "description": "SMTP port"},
+    {"name": "SMTP_USER", "required": false, "description": "SMTP username"},
+    {"name": "SMTP_PASS", "required": false, "description": "SMTP password"},
+    {"name": "SMTP_SENDER_NAME", "required": false, "default": "Supabase", "description": "Email sender name"}
+  ],
+  "health": {
+    "checks": [
+      {"name": "auth", "url": "http://127.0.0.1:8000/auth/v1/health", "timeout": 120, "type": "internal"},
+      {"name": "rest", "url": "http://127.0.0.1:8000/rest/v1/", "timeout": 120, "type": "internal"},
+      {"name": "storage", "url": "http://127.0.0.1:8000/storage/v1/", "timeout": 120, "type": "internal"},
+      {"name": "studio", "url": "http://127.0.0.1:3100", "timeout": 180, "type": "internal"},
+      {"name": "external_https", "url": "https://{{domain}}", "timeout": 60, "type": "external"}
+    ]
+  },
+  "healthCheck": {"url": "http://localhost:8000/auth/v1/health", "timeout": 120},
+  "postInstall": [
+    "echo 'Waiting for services to stabilize...'",
+    "sleep 10",
+    "echo 'Supabase Self-Hosted is ready'"
+  ],
+  "policies": {
+    "ban_latest": true,
+    "strict_mode": true,
+    "self_host_strict": true,
+    "on_error_stop": true
+  },
+  "recovery": {
+    "max_rounds": 2,
+    "restart_on_fail": true,
+    "restart_command": "docker compose down && docker compose up -d"
+  },
+  "seed_admin": {
+    "enabled": true,
+    "api_endpoint": "http://127.0.0.1:8000/auth/v1/admin/users",
+    "max_retries": 3
+  },
+  "minAgentVersion": "2.5.0",
+  "tested": true
+}
