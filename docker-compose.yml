@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   studio:
-    image: supabase/studio:latest
+    image: supabase/studio:2026.02.16-sha-26c615c
     restart: unless-stopped
     ports:
       - "${STUDIO_PORT:-3000}:3000"
